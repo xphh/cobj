@@ -68,20 +68,21 @@ cobj provides two custom types for use:
 
 CSTR --- Actually it is a struct contains a char pointer.
          To initialize a CSTR, use 'CS' macro: CSTR s = CS("hello word");
-		 To delete a CSTR, use 'CS_CLEAR' macro: CS_CLEAR(s);
-		 or memory leak might occur.
+         To delete a CSTR, use 'CS_CLEAR' macro: CS_CLEAR(s);
+         or memory leak might occur.
 		 
 list --- Define with 'DECALRE_LIST' macro, can be generic.
          To initialize a list, use 'LIST_INIT' macro.
-		 To delete a list, use 'LIST_CLEAR' macro.
-		 Before deleting a list, make sure you have freed the items inside.
-		 For more details, please read cobj.h.
+         To delete a list, use 'LIST_CLEAR' macro.
+         Before deleting a list, make sure you have freed the items inside.
+         For more details, please read cobj.h.
 
 ==============================
 	How to use cobj?
 ==============================
 The way to make a C object have reflection function possible is to adhere an 
-additional 'metainfo' with this object. Therefore you need to declare object's
+additional 'metainfo' with this object. A metainfo saves the hierarchy 
+information of an object's structure. Therefore you need to declare object's
 structure and metainfo at the same time.
 
 metainfo must be defined in .c files, start with 'DEFINE_METAINFO' macro.
@@ -97,7 +98,7 @@ Then the corresponding metainfo is like this:
 	{
 		// must create it on first line
 		METAINFO_CREATE(BigBox);
-		// add members, the parameters is: 
+		// add members, the parameters are: 
 		// (structure name, member data type, member name)
 		METAINFO_ADD_MEMBER(BigBox, FIELD_TYPE_INT, pen);
 		METAINFO_ADD_MEMBER(BigBox, FIELD_TYPE_CSTR, text);
@@ -112,12 +113,12 @@ Structure can nest structure if like this:
 			CSTR text;
 		} sb;
 	}
-which metainfo like this:
+which metainfo is like this:
 	DEFINE_METAINFO(BigBox)
 	{
 		// must create it on first line
 		METAINFO_CREATE(BigBox);
-		// 'SmallBox' begin, the parameters is: 
+		// 'SmallBox' begin, the parameters are: 
 		// (outer structure name, inner structure name, member name)
 		METAINFO_CHILD_BEGIN(BigBox, SmallBox, sb);
 			// add members
@@ -137,14 +138,14 @@ In many cases, we need define a list, think about this:
 			CSTR text;
 		}) sbList;
 	}
-which metainfo like this:
+which metainfo is like this:
 	DEFINE_METAINFO(BigBox)
 	{
 		// must create it on first line
 		METAINFO_CREATE(BigBox);
-		// add a member as list, the parameters is the same.
+		// add a member as list, the parameters are the same.
 		METAINFO_ADD_MEMBER_LIST(BigBox, FIELD_TYPE_INT, penList);
-		// 'SmallBox' list begin, the parameters is the same. 
+		// 'SmallBox' list begin, the parameters are the same. 
 		METAINFO_CHILD_LIST_BEGIN(BigBox, SmallBox, sbList);
 			// add members
 			METAINFO_ADD_MEMBER(SmallBox, FIELD_TYPE_INT, pen);
@@ -156,16 +157,15 @@ which metainfo like this:
 After metainfo created, you must register it at the beginning of your program:
 	REGISTER_METAINFO(BigBox);
 	
-At this point, the prepare works are done. The object you defined just now has 
-its reflection function from now on.
+At this point, the prepare works are done. 
 
-new a object from a struct('s' for name), will return a pointer:
+To new an object from a struct('s' for name), will return a pointer:
 	OBJECT_NEW(s)
-delete and free all memories inside of a struct:
+To delete an object(point to ptr) and free all memories inside:
 	OBJECT_DELETE(ptr, s)
-convert an object('s' for object's struct name) to a json string:
+To convert an object('s' for object's struct name) to a json string:
 	OBJECT_TO_JSON(ptr, s)
-convert from a json string('str' for string), will return a pointer to object:
+To convert from a json string('str'), will return a pointer to object of s:
 	OBJECT_FROM_JSON(s, str)
 	
 Want to learn more? Please read and run test.c.
