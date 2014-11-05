@@ -8,19 +8,17 @@ struct YearRecord
 {
 	int year;
 	CSTR yearLabel;
-	struct MonthRecord 
+	DECLARE_LIST(struct MonthRecord 
 	{
 		int month;
 		CSTR monthLabel;
-		struct DayRecord 
+		DECLARE_LIST(struct DayRecord 
 		{
 			int day;
 			CSTR dayLabel;
 			BOOL mark;
-		};
-		DECLARE_LIST(struct DayRecord) dayList;
-	};
-	DECLARE_LIST(struct MonthRecord) monthList;
+		}) dayList;
+	}) monthList;
 };
 
 /* 
