@@ -231,7 +231,7 @@ static cJSON *_to_jsonobject(void *obj, metainfo_t *mi)
 			}
 			else if (f->type == FIELD_TYPE_CSTR)
 			{
-				array = cJSON_CreateStringArray((char **)fb->ptr, fb->count);
+				array = cJSON_CreateStringArray((const char **)fb->ptr, fb->count);
 			} 
 			else if (f->type == FIELD_TYPE_STRUCT)
 			{
