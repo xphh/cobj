@@ -1,0 +1,178 @@
+/*
+Copyright (c) 2014 xphh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+Welcome to cobj.
+
+==============================
+	What's cobj?
+==============================
+cobj is a simple implementation of C object with reflection function, which 
+is very common in Java. An object defined by cobj's rules can easily convert 
+to/from Json string automatically.
+
+The source code of cobj project is brief, which contains:
+cobj.h           --- header file of cobj
+cobj.c           --- implementation
+test.c           --- test code for demo
+cJSON/           --- cJSON directory
+	cJSON.h
+	cJSON.c
+
+You can add cobj.h and cobj.c files into your project directly as you wish.
+Also if you just want to compile and test cobj only, build like this:
+	gcc cobj.c test.c cJSON/cJSON.c -o test -lm
+and run test:
+	./test
+
+==============================
+	Things you must know!
+==============================
+As you have seen before, cobj is rely on cJSON to convert between objects and
+Json strings. cobj project already contains cJSON source code in cJSON directory,
+but you might prefer the latest version of cJSON, just visit here:
+	http://sourceforge.net/projects/cjson/
+
+The first thing you need to know is that cobj make the rules for defining a 
+object. The object must be definition as cobj need, or it cannot be convert 
+to/from Json string automatically. You can learn it in 'How to use' chapter.
+
+A cobj-need object is only support a few data type now, which is listed below:
+	int                   --- integer
+	BOOL                  --- boolean, typedef from int
+	CSTR                  --- const string, defined in cobj
+	struct                --- custom-declared structure
+	DECALRE_LIST(int)     --- array list of int
+	DECALRE_LIST(CSTR)    --- array list of CSTR
+	DECALRE_LIST(struct)  --- array list of struct
+	
+cobj provides two custom types for use:
+
+CSTR --- Actually it is a struct contains a char pointer.
+         To initialize a CSTR, use 'CS' macro: CSTR s = CS("hello word");
+		 To delete a CSTR, use 'CS_CLEAR' macro: CS_CLEAR(s);
+		 or memory leak might occur.
+		 
+list --- Define with 'DECALRE_LIST' macro, can be generic.
+         To initialize a list, use 'LIST_INIT' macro.
+		 To delete a list, use 'LIST_CLEAR' macro.
+		 Before deleting a list, make sure you have freed the items inside.
+		 For more details, please read cobj.h.
+
+==============================
+	How to use cobj?
+==============================
+The way to make a C object have reflection function possible is to adhere an 
+additional 'metainfo' with this object. Therefore you need to declare object's
+structure and metainfo at the same time.
+
+metainfo must be defined in .c files, start with 'DEFINE_METAINFO' macro.
+
+Think a structure declared like this:
+	struct BigBox
+	{
+		int pen;
+		CSTR text;
+	}
+Then the corresponding metainfo is like this:
+	DEFINE_METAINFO(BigBox)
+	{
+		// must create it on first line
+		METAINFO_CREATE(BigBox);
+		// add members, the parameters is: 
+		// (structure name, member data type, member name)
+		METAINFO_ADD_MEMBER(BigBox, FIELD_TYPE_INT, pen);
+		METAINFO_ADD_MEMBER(BigBox, FIELD_TYPE_CSTR, text);
+	}
+	
+Structure can nest structure if like this:
+	struct BigBox
+	{
+		struct SmallBox
+		{
+			int pen;
+			CSTR text;
+		} sb;
+	}
+which metainfo like this:
+	DEFINE_METAINFO(BigBox)
+	{
+		// must create it on first line
+		METAINFO_CREATE(BigBox);
+		// 'SmallBox' begin, the parameters is: 
+		// (outer structure name, inner structure name, member name)
+		METAINFO_CHILD_BEGIN(BigBox, SmallBox, sb);
+			// add members
+			METAINFO_ADD_MEMBER(SmallBox, FIELD_TYPE_INT, pen);
+			METAINFO_ADD_MEMBER(SmallBox, FIELD_TYPE_CSTR, text);
+		// 'SmallBox' end
+		METAINFO_CHILD_END();
+	}
+
+In many cases, we need define a list, think about this:
+ 	struct BigBox
+	{
+		DECLARE_LIST(int) penList;
+		DECLARE_LIST(struct SmallBox
+		{
+			int pen;
+			CSTR text;
+		}) sbList;
+	}
+which metainfo like this:
+	DEFINE_METAINFO(BigBox)
+	{
+		// must create it on first line
+		METAINFO_CREATE(BigBox);
+		// add a member as list, the parameters is the same.
+		METAINFO_ADD_MEMBER_LIST(BigBox, FIELD_TYPE_INT, penList);
+		// 'SmallBox' list begin, the parameters is the same. 
+		METAINFO_CHILD_LIST_BEGIN(BigBox, SmallBox, sbList);
+			// add members
+			METAINFO_ADD_MEMBER(SmallBox, FIELD_TYPE_INT, pen);
+			METAINFO_ADD_MEMBER(SmallBox, FIELD_TYPE_CSTR, text);
+		// 'SmallBox' end, the same.
+		METAINFO_CHILD_END();
+	}
+	
+After metainfo created, you must register it at the beginning of your program:
+	REGISTER_METAINFO(BigBox);
+	
+At this point, the prepare works are done. The object you defined just now has 
+its reflection function from now on.
+
+new a object from a struct('s' for name), will return a pointer:
+	OBJECT_NEW(s)
+delete and free all memories inside of a struct:
+	OBJECT_DELETE(ptr, s)
+convert an object('s' for object's struct name) to a json string:
+	OBJECT_TO_JSON(ptr, s)
+convert from a json string('str' for string), will return a pointer to object:
+	OBJECT_FROM_JSON(s, str)
+	
+Want to learn more? Please read and run test.c.
+
+==============================
+	About author
+==============================
+cobj is written by xphh(Ping Xu), lived in Hangzhou, China.
+Bug report and communication, please send E-mail: netten2005@163.com
+
