@@ -51,11 +51,11 @@ Json strings. cobj project already contains cJSON source code in cJSON directory
 but you might prefer the latest version of cJSON, just visit here:
 	http://sourceforge.net/projects/cjson/
 
-The first thing you need to know is that cobj make the rules for defining a 
-object. The object must be definition as cobj need, or it cannot be convert 
+The first thing you need to know is that cobj makes the rules for defining an 
+object. The object must be defined as cobj need, or it cannot be convert 
 to/from Json string automatically. You can learn it in 'How to use' chapter.
 
-A cobj-need object is only support a few data type now, which is listed below:
+A cobj-need object is only support a few data types now, which are listed below:
 	int                   --- integer
 	BOOL                  --- boolean, typedef from int
 	CSTR                  --- const string, defined in cobj
@@ -80,8 +80,8 @@ list --- Define with 'DECALRE_LIST' macro, can be generic.
 ==============================
 	How to use cobj?
 ==============================
-The way to make a C object have reflection function possible is to adhere an 
-additional 'metainfo' with this object. A metainfo saves the hierarchy 
+The way to make C object with reflection function possible is to adhere an 
+additional 'metainfo' to this object. A metainfo saves the hierarchy 
 information of an object's structure. Therefore you need to declare object's
 structure and metainfo at the same time.
 
